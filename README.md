@@ -44,7 +44,7 @@ This virtual desktop only has the captured windows, which improves privacy a lot
 
 Provide an API which allows multiple screen-captures to be initiated. It should only require a single transient activation. Ideally, the user agent should present to the user a UX which would render certain user-mistakes impossible (e.g. capturing the same surface multiple times).
 
-## Proposed Solutions
+## Possible Solutions
 
 ### Possible API 1: New method (getDisplayMediaSet)
 ```webidl
