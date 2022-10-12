@@ -1,6 +1,6 @@
 var respecConfig = {
-  group: "webrtc",
-  specStatus: "unofficial",
+  group: "wicg",
+  specStatus: "CG-DRAFT",
   github: {
     repoURL: "https://github.com/wicg/multicapture/",
     branch: "master",
