@@ -78,9 +78,9 @@
       <code>navigator.mediaDevices.getDisplayMediaSet</code> method defined in this document.
     </p>
     <pre class="example highlight">try {
-  let mediaStream = await navigator.mediaDevices.getDisplayMediaSet({video:true});
-  videoElement0.srcObject = mediaStream[0];
-  videoElement1.srcObject = mediaStream[1];
+  const mediaStreams = await navigator.mediaDevices.getDisplayMediaSet({ video:true });
+  videoElement0.srcObject = mediaStreams[0];
+  videoElement1.srcObject = mediaStreams[1];
   // ...
 } catch (e) {
   console.log('Unable to acquire screen captures: ' + e);
