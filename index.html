@@ -12,11 +12,11 @@
   <section id="abstract">
     <h2>Abstract</h2>
     <p>
-      This document defines how multiple
+      This document defines a new API {{MediaDevices/getDisplayMediaSet}}
+      for capturing multiple
       <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>
-      can be used as the source of a set of media streams using
-      {{MediaDevices/getDisplayMediaSet}}, an extension to the Media Capture API
-      [[GETUSERMEDIA]].
+      following one user gesture.
+      It is an extension to the Screen Capture API [[screen-capture]].
     </p>
   </section>
   <section id="sotd">
@@ -30,15 +30,15 @@
       Introduction
     </h2>
     <p>
-      This document describes an extension to the Media Capture API [[GETUSERMEDIA]] that enables
+      This document describes {{MediaDevices/getDisplayMediaSet}}, an extension to
+      the Screen Capture API [[screen-capture]]. {{MediaDevices/getDisplayMediaSet}} enables
       the capturing of several of the users user's displays, or parts thereof, in the form of a
       list of media streams (each containing a track corresponding to the captured
       <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>).
-      This extends a number of applications, including screen sharing using WebRTC [[WEBRTC]].
     </p>
     <p>
-      The API specificied in this document, i.e. {{MediaDevices/getDisplayMediaSet()}}, is similar
-      to {{MediaDevices/getDisplayMedia()}} [[screen-capture]], where the former allows capturing of exactly one
+      The API specificied in this document, {{MediaDevices/getDisplayMediaSet()}}, is similar
+      to {{MediaDevices/getDisplayMedia()}}, where the former allows capturing of exactly one
       <a data-cite="screen-capture#dfn-display-surface">display surface</a>
       and the latter allows capturing of multiple
       <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>.
@@ -49,11 +49,6 @@
       origins if that information is under the control of the application. This includes content
       that would otherwise be inaccessible due to the protections offered by the user agent
       sandbox.
-    </p>
-    <p>
-      This document concerns itself primarily with the capture of audio and video [[GETUSERMEDIA]],
-      but the general mechanisms defined here could be extended to other types of media like
-      depth [[MEDIACAPTURE-DEPTH]].
     </p>
   </section>
   <section id="conformance">
@@ -77,14 +72,16 @@
       The following example demonstrates a request for multiple display captures using the
       <code>navigator.mediaDevices.getDisplayMediaSet</code> method defined in this document.
     </p>
-    <pre class="example highlight">try {
-  const mediaStreams = await navigator.mediaDevices.getDisplayMediaSet({ video:true });
-  videoElement0.srcObject = mediaStreams[0];
-  videoElement1.srcObject = mediaStreams[1];
-  // ...
-} catch (e) {
-  console.log('Unable to acquire screen captures: ' + e);
-}</pre>
+    <pre class="example highlight">
+      try {
+        const mediaStreams = await navigator.mediaDevices.getDisplayMediaSet({ video:true });
+        videoElement0.srcObject = mediaStreams[0];
+        videoElement1.srcObject = mediaStreams[1];
+        // ...
+      } catch (e) {
+        console.log('Unable to acquire screen captures: ' + e);
+      }
+    </pre>
   </section>
   <section id="terminology">
     <h2>
@@ -97,7 +94,7 @@
       <a data-cite="screen-capture#dfn-floor-value">floor value</a> from [[!screen-capture]].
     </p>
   </section>
-  <section id="cmds">
+  <section id="capture_multiple_display_surfaces">
     <h2>
       Capturing multiple display surfaces
     </h2>
@@ -124,7 +121,7 @@
         </dt>
         <dd>
           <p>
-            Prompts the user for permission to live-capture multiple of their
+            Prompts the user for permission to live-capture multiple
             <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>.
           </p>
           <p>
@@ -297,7 +294,7 @@
                 <li>
                   <p>[=Prompt the user to choose=]
                     one or more <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>,
-                    for one or more {{PermissionDescriptor}} with its {{PermissionDescriptor/name}} set
+                    for a {{PermissionDescriptor}} with its {{PermissionDescriptor/name}} set
                     to "display-capture", resulting in a set of provided media.</p>
                   <p>Each provided media MUST include precisely one video track.</p>
                   <p>Each provided media MUST include at most one audio track. This audio
