@@ -30,25 +30,29 @@
       Introduction
     </h2>
     <p>
+      The Screen Capture API [[screen-capture]] enables the capturing of a single
+      <a data-cite="screen-capture#dfn-display-surface">display surface</a> in the
+      form of a video track.
+    </p>
+    <p>
+      Users who want to capture multiple
+      <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>
+      at once through the Screen Capture API with {{MediaDevices/getDisplayMedia}}
+      have to call {{MediaDevices/getDisplayMedia}} several times
+      and have to select each of the desired
+      <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>
+      separately.
+      This adds unnecessary friction and results in degraded user experience.
+    </p>
+    <p>
       This document describes {{MediaDevices/getDisplayMediaSet}}, an extension to
-      the Screen Capture API [[screen-capture]]. {{MediaDevices/getDisplayMediaSet}} enables
-      the capturing of several of the users user's displays, or parts thereof, in the form of a
-      list of media streams (each containing a track corresponding to the captured
+      the Screen Capture API [[screen-capture]].
+      {{MediaDevices/getDisplayMediaSet}} enables
+      the capturing of several of the users user's displays,
+      or parts thereof, with a single interaction.
+      It returns a list of media streams
+      (each containing a track corresponding to the captured
       <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>).
-    </p>
-    <p>
-      The API specificied in this document, {{MediaDevices/getDisplayMediaSet()}}, is similar
-      to {{MediaDevices/getDisplayMedia()}}, where the former allows capturing of exactly one
-      <a data-cite="screen-capture#dfn-display-surface">display surface</a>
-      and the latter allows capturing of multiple
-      <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>.
-    </p>
-    <p>
-      This feature has signficant security implications. Applications that use this API to access
-      information that is displayed to users could access confidential information from other
-      origins if that information is under the control of the application. This includes content
-      that would otherwise be inaccessible due to the protections offered by the user agent
-      sandbox.
     </p>
   </section>
   <section id="conformance">
@@ -75,9 +79,9 @@
     <pre class="example highlight">
       try {
         const mediaStreams = await navigator.mediaDevices.getDisplayMediaSet({ video:true });
-        videoElement0.srcObject = mediaStreams[0];
-        videoElement1.srcObject = mediaStreams[1];
-        // ...
+        mediaStreams.forEach((mediaStream, index) => {
+          videoElements[index].scrcObject = mediaStream;
+        })
       } catch (e) {
         console.log('Unable to acquire screen captures: ' + e);
       }
@@ -102,9 +106,7 @@
       Capture of multiple <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>
       is enabled through the addition of a new
       {{MediaDevices/getDisplayMediaSet}} method on the {{MediaDevices}}
-      interface, that is similar to {{MediaDevices/getDisplayMedia()}},
-      except that it acquires media from multiple display devices
-      chosen by the end-user each time.
+      interface.
     </p>
     <section>
       <h2>
@@ -129,7 +131,7 @@
             <a data-cite="screen-capture#dfn-display-surface">display surfaces</a> to share
             out of all available choices every time, and MUST NOT use
             any {{MediaTrackConstraints}} in <var>options</var>.<code>video</code>
-            or <var>options</var>.<code>audio</code> to limit that choice.
+            to limit that choice.
           </p>
           <p>
             The <a href="#dfn-user-agent">user agent</a> MUST return a list of {{MediaStream}}
@@ -140,40 +142,24 @@
             selected by the user can be captured, {{MediaDevices/getDisplayMediaSet}} must return
             a promise <a>rejected</a> with a new {{InvalidStateError}}.
           </p>
-          <!--
-              This paragraph is intended to avoid duplicate (and potentially out-of-sync) paragraphs
-              with the getDisplayMedia spec. Is this too imprecise?
-            -->
           <p>
-            The <a href="#dfn-user-agent">user agent</a> must apply the {{DisplayMediaStreamOptions.audio}}
-            and {{DisplayMediaStreamOptions.video}} constraints to to each of the selected
+            The <a href="#dfn-user-agent">user agent</a> must apply {{DisplayMediaStreamOptions.video}}
+            constraints to to each of the selected
             <a data-cite="screen-capture#dfn-display-surface">display surfaces</a> in the same way as it does for
             {{MediaDevices/getDisplayMedia()}}.
           </p>
           <p>
-            The <a href="#dfn-user-agent">user agent</a> MAY allow the user to select a mix of different
-            <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>.
-          </p>
-          <!-- TODO: Is this really necessary? -->
-          <p>
-            If {{DisplayMediaStreamOptions.systemAudio}} is set to {{SystemAudioPreferenceEnum/"include"}},
-            the <a href="#dfn-user-agent">user agent</a> MAY add an audio track capturing system audio
-            for each returned {{MediaStream}} object or MAY restrict the audio surce further,
-            depending on the <a data-cite="screen-capture#dfn-display-surface">display surfaces</a> selected by the
-            user.
-          </p>
-          <!-- TODO: Should we allow this behavior with gDMS? -->
-          <p>
-            The <a href="#dfn-user-agent">user agent</a> MUST return a promise <a>rejected</a> with
-            a new {{TypeError}} if the {{DisplayMediaStreamOptions.surfaceSwitching}}
-            is specified.
+            When prompting the user to choose which display surfaces to capture, the 
+            <a href="#dfn-user-agent">user agent</a> MUST allow
+            the user to choose any individual
+            <a data-cite="screen-capture#dfn-display-surface">display surface</a> type.
+            However, the <a href="#dfn-user-agent">user agent</a> MAY restrict
+            the choice so that it would not mix surfaces of a different type.
           </p>
           <p>
             As with {{MediaDevices/getDisplayMedia()}}, {{PermissionState/"granted"}} permissions
             cannot be persisted.
           </p>
-
-
           <p>When the {{MediaDevices/getDisplayMediaSet()}}
             method is called, the user agent MUST run the following
             steps:</p>
@@ -190,16 +176,18 @@
             </li>
             <li>
               <!-- Note: this is one difference to getDisplayMedia. -->
-              <p>If <code>options.surfaceSwitching</code> is defined,
-                return a promise <a>rejected</a>
+              <p>
+                If <code>options</code> contains any attribute other than
+                <code>options.video</code>, return a promise <a>rejected</a>
                 with a {{DOMException}} object whose {{DOMException/name}}
                 attribute has the value {{TypeError}}.
               </p>
             </li>
             <li>
+              <!-- Note: keeping the [...] notation to not diverge too far
+              from the getDisplayMediaSet spec. -->
               <p>Let <var>constraints</var> be
-                <code>[</code><var>options</var>.<code>audio</code>,
-                <var>options</var>.<code>video</code><code>]</code>.
+                <code>[<var>options</var>.<code>video</code><code>]</code>.
               </p>
             </li>
             <li>
@@ -297,10 +285,7 @@
                     for a {{PermissionDescriptor}} with its {{PermissionDescriptor/name}} set
                     to "display-capture", resulting in a set of provided media.</p>
                   <p>Each provided media MUST include precisely one video track.</p>
-                  <p>Each provided media MUST include at most one audio track. This audio
-                    track MUST NOT be included if audio was not specified in
-                    <var>requestedMediaTypes</var>, or if it was specified as
-                    <code>false</code>.
+                  <p>Each provided media MUST not include any audio track.
                   </p>
                   <p>The devices chosen MUST be the ones determined by the user.
                     Once selected, the source of each {{MediaStreamTrack}} MUST NOT change,
@@ -396,12 +381,7 @@
             <a data-cite="screen-capture#elevated-permissions">elevated permissions</a>).
           </p>
           <p>
-            The <a>user agent</a> MUST NOT share audio without
-            <a data-cite="screen-capture#dfn-active-user-consent">active user consent</a>,
-            for example if the capture of the video of a window
-            <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>
-            is accompanied by capture of the audio of the
-            entire system, including applications unrelated to that window.
+            The <a>user agent</a> MUST NOT share audio.
           </p>
         </dd>
       </dl>
