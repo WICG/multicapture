@@ -102,9 +102,9 @@
     </p>
     <pre class="example highlight">
       try {
-        const mediaStreams = await navigator.mediaDevices.getDisplayMediaSet({ video:true });
+        const mediaStreams = await navigator.mediaDevices.getDisplayMediaSet();
         mediaStreams.forEach((mediaStream, index) => {
-          videoElements[index].scrcObject = mediaStream;
+          videoElements[index].srcObject = mediaStream;
         })
       } catch (e) {
         console.log('Unable to acquire screen captures: ' + e);
