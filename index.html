@@ -61,11 +61,14 @@
     <p>
       Users who want to capture multiple
       <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>
-      at once through the Screen Capture API with {{MediaDevices/getDisplayMedia}}
-      have to call {{MediaDevices/getDisplayMedia}} several times
-      and have to select each of the desired
+      at once through the Screen Capture API with
+      <a data-cite="screen-capture#dom-mediadevices-getdisplaymedia">getDisplayMedia</a>
+      have to call 
+      <a data-cite="screen-capture#dom-mediadevices-getdisplaymedia">getDisplayMedia</a>
+      several times and have to select each of the desired
       <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>
       separately.
+      This requires multiple user gestures, repeated interaction with browser-level UX.
       This adds unnecessary friction and results in degraded user experience.
     </p>
     <p>
@@ -73,7 +76,7 @@
       the Screen Capture API [[screen-capture]].
       {{MediaDevices/getDisplayMediaSet}} enables
       the capturing of several of the users user's displays,
-      or parts thereof, with a single interaction.
+      or parts thereof, with a single user gesture.
       It returns a list of media streams
       (each containing a track corresponding to the captured
       <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>).
@@ -118,8 +121,7 @@
     <p>
       This document uses the definition of {{MediaStream}}, {{MediaStreamTrack}}
       from [[!GETUSERMEDIA]] and <a data-cite="screen-capture#dfn-display-surface">display surface</a>,
-      <a data-cite="screen-capture#dfn-active-user-consent">active user consent</a>,
-      <a data-cite="screen-capture#dfn-floor-value">floor value</a> from [[!screen-capture]].
+      <a data-cite="screen-capture#dfn-active-user-consent">active user consent</a> from [[!screen-capture]].
     </p>
   </section>
   <section id="capture_multiple_display_surfaces">
@@ -138,7 +140,7 @@
       </h2>
       <pre class="idl">
           partial interface MediaDevices {
-            Promise&lt;sequence&lt;MediaStream&gt;&gt; getDisplayMediaSet(optional DisplayMediaStreamOptions options = {});
+            Promise&lt;sequence&lt;MediaStream&gt;&gt; getDisplayMediaSet();
           };
         </pre>
       <dl data-link-for="MediaDevices" data-dfn-for="MediaDevices" class="methods">
@@ -153,9 +155,7 @@
           <p>
             The <a href="#dfn-user-agent">user agent</a> MUST let the end-user choose which
             <a data-cite="screen-capture#dfn-display-surface">display surfaces</a> to share
-            out of all available choices every time, and MUST NOT use
-            any {{MediaTrackConstraints}} in <var>options</var>.<code>video</code>
-            to limit that choice.
+            out of all available choices every time.
           </p>
           <p>
             The <a href="#dfn-user-agent">user agent</a> MUST return a list of {{MediaStream}}
@@ -167,12 +167,6 @@
             a promise <a>rejected</a> with a new {{InvalidStateError}}.
           </p>
           <p>
-            The <a href="#dfn-user-agent">user agent</a> must apply {{DisplayMediaStreamOptions.video}}
-            constraints to to each of the selected
-            <a data-cite="screen-capture#dfn-display-surface">display surfaces</a> in the same way as it does for
-            {{MediaDevices/getDisplayMedia()}}.
-          </p>
-          <p>
             When prompting the user to choose which display surfaces to capture, the 
             <a href="#dfn-user-agent">user agent</a> MUST allow
             the user to choose any individual
@@ -181,8 +175,7 @@
             the choice so that it would not mix surfaces of a different type.
           </p>
           <p>
-            As with {{MediaDevices/getDisplayMedia()}}, {{PermissionState/"granted"}} permissions
-            cannot be persisted.
+            {{PermissionState/"granted"}} permissions cannot be persisted.
           </p>
           <p>When the {{MediaDevices/getDisplayMediaSet()}}
             method is called, the user agent MUST run the following
@@ -193,74 +186,6 @@
                 [=transient activation=], return a promise <a>rejected</a>
                 with a {{DOMException}} object whose {{DOMException/name}}
                 attribute has the value {{InvalidStateError}}.</p>
-            </li>
-            <li>
-              <p>Let <var>options</var> be the method's first
-                argument.</p>
-            </li>
-            <li>
-              <!-- Note: this is one difference to getDisplayMedia. -->
-              <p>
-                If <code>options</code> contains any attribute other than
-                <code>options.video</code>, return a promise <a>rejected</a>
-                with a {{DOMException}} object whose {{DOMException/name}}
-                attribute has the value {{TypeError}}.
-              </p>
-            </li>
-            <li>
-              <!-- Note: keeping the [...] notation to not diverge too far
-              from the getDisplayMediaSet spec. -->
-              <p>Let <var>constraints</var> be
-                <code>[<var>options</var>.<code>video</code><code>]</code>.
-              </p>
-            </li>
-            <li>
-              <p>If <code>constraints.video</code> is <code>false</code>,
-                return a promise [=reject|rejected=] with a newly
-                [=exception/created=] {{TypeError}}.</p>
-            </li>
-            <li>
-              <p>For each [= map/exist | existing =] member
-                in <var>constraints</var> whose value, <var>CS</var>, is
-                a dictionary, run the following steps:</p>
-              <ol>
-                <li>
-                  <p>If <var>CS</var> contains a member named <code>advanced</code>,
-                    return a promise [=reject|rejected=] with a newly
-                    [=exception/created=] {{TypeError}}.</p>
-                </li>
-                <li>
-                  <p>If <var>CS</var> contains a member whose name specifies a
-                    constrainable property applicable to
-                    <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>,
-                    and whose value in turn is a dictionary containing a member
-                    named either <code>min</code> or <code>exact</code>, return
-                    a promise [=reject|rejected=] with a newly
-                    [=exception/created=] {{TypeError}}.
-                  </p>
-                </li>
-                <li>
-                  <p>If <var>CS</var> contains a member whose name specifies a
-                    constrainable property applicable to
-                    <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>,
-                    and whose value in turn is a dictionary containing a member
-                    named <code>max</code>, and that member's value in turn is
-                    less than the constrainable property's
-                    <a data-cite="screen-capture#dfn-floor-value">floor value</a>,
-                    then let <var>failedConstraint</var> be the name of the
-                    member, let <var>message</var> be either
-                    <code>undefined</code> or an informative human-readable
-                    message, and return a promise [=reject|rejected=] with a new
-                    <code>OverconstrainedError</code> created by calling
-                    <code>OverconstrainedError(<var>failedConstraint</var>,
-                    <var>message</var>)</code>.
-                </li>
-              </ol>
-            </li>
-            <li>
-              <p>Let <var>requestedMediaTypes</var> be the set of media
-                types in <var>constraints</var> with either a dictionary
-                value or a value of <code>true</code>.</p>
             </li>
             <li>
               <p>If the <a>current settings object</a>'s [=relevant global object=]'s
@@ -276,28 +201,6 @@
             <li>
               <p>Run the following steps in parallel:</p>
               <ol>
-                <li>
-                  <p>For each media type <var>T</var> in
-                    <var>requestedMediaTypes</var>,
-                  </p>
-                  <ol>
-                    <li>
-                      <!-- Remark: Is getDisplayMedia currently violating this part of the spec? -->
-                      <p>If no sources of type <var>T</var> are available,
-                        <a>reject</a> <var>p</var> with a new
-                        {{DOMException}} object whose
-                        {{DOMException/name}} attribute has the value
-                        {{NotFoundError}}.
-                      </p>
-                    </li>
-                    <li>
-                      <p>Read the current [= permission state=] for obtaining
-                        sources of type <var>T</var> in the current browsing
-                        context. If the permission state is {{PermissionState/"denied"}}, jump to
-                        the step labeled <em>PermissionFailure</em> below.</p>
-                    </li>
-                  </ol>
-                </li>
                 <li>
                   <p>Optionally, e.g., based on a previously-established
                     user preference, for security reasons, or due to platform
@@ -315,7 +218,7 @@
                     Once selected, the source of each {{MediaStreamTrack}} MUST NOT change,
                     unless the user permits it through their interaction with
                     the <a href="#dfn-user-agent">user agent</a>.</p>
-                  <p><a href="#dfn-user-agent">user agents</a> are encouraged to warn
+                  <p><a href="#dfn-user-agent">User agents</a> are encouraged to warn
                     users against sharing browser <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>
                     as well as monitor <a data-cite="screen-capture#dfn-display-surface">display surfaces</a>
                     where browser windows are visible, or
@@ -355,23 +258,6 @@
                 <li>
                   <p>Let <var>streams</var> be the
                     list of {{MediaStream}} objects for which the user granted permission.</p>
-                </li>
-                <li>
-                  <!-- Guidance taken from https://infra.spec.whatwg.org/ -->
-                  <p>For each <var>stream</var> of <var>streams</var>
-                    run the [=ApplyConstraints algorithm=] on all
-                    tracks in <var>stream</var> with the appropriate
-                    constraints. Should this fail for at least one <var>stream</var>,
-                    let <var>failedConstraint</var>
-                    be the result of the algorithm that failed, and let
-                    <var>message</var> be either <code>undefined</code> or an
-                    informative human-readable message, then <a>reject</a>
-                    <var>p</var> with a new <code>OverconstrainedError</code>
-                    created by calling
-                    <code>OverconstrainedError(<var>failedConstraint</var>,
-                    <var>message</var>)</code>, and then abort the processing
-                    of all other elements <var>stream'</var> in <var>streams</var>.
-                  </p>
                 </li>
                 <li>
                   <p><a>Resolve</a> <var>p</var> with <var>streams</var> and
